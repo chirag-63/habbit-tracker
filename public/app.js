@@ -4,10 +4,17 @@ const API_URL = 'http://localhost:3000/api/habits';
 document.addEventListener('DOMContentLoaded', () => {
     loadHabits();
     
-    // Add enter key support for input
+    // Add enter key support for habit input
     document.getElementById('habitInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             addHabit();
+        }
+    });
+    
+    // Add enter key support for goal input
+    document.getElementById('goalInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            getSuggestions();
         }
     });
 });
@@ -52,7 +59,7 @@ function displayHabits(habits) {
         <div class="habit-card ${habit.completed ? 'completed' : ''}">
             <div class="habit-info">
                 <div class="habit-name">
-                    ${habit.completed ? '<i class="fas fa-check-circle"></i>' : '<i class="far fa-circle"></i>'}
+                    ${habit.completed ? '<i class="fas fa-check-circle"></i>' : ''}
                     ${habit.name}
                 </div>
                 <div class="habit-meta">
@@ -194,5 +201,95 @@ async function deleteHabit(id) {
     } catch (error) {
         console.error('Error:', error);
         alert('Error deleting habit');
+    }
+}
+
+// Get AI-powered habit suggestions
+async function getSuggestions() {
+    const goalInput = document.getElementById('goalInput');
+    const goal = goalInput.value.trim();
+    const suggestionsDiv = document.getElementById('suggestions');
+    const suggestBtn = document.getElementById('suggestBtn');
+    
+    if (!goal) {
+        alert('Please enter your goal');
+        return;
+    }
+    
+    // Show loading state
+    suggestBtn.disabled = true;
+    suggestBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Generating...</span>';
+    suggestionsDiv.innerHTML = '<div class="loading-suggestions"><i class="fas fa-magic fa-spin"></i> AI is thinking...</div>';
+    
+    try {
+        const response = await fetch(`${API_URL}/suggest-habits`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ goal })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displaySuggestions(result.suggestions);
+        } else {
+            suggestionsDiv.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${result.error}</div>`;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        suggestionsDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Failed to get suggestions</div>';
+    } finally {
+        suggestBtn.disabled = false;
+        suggestBtn.innerHTML = '<i class="fas fa-sparkles"></i><span>Get AI Suggestions</span>';
+    }
+}
+
+// Display AI suggestions
+function displaySuggestions(suggestions) {
+    const suggestionsDiv = document.getElementById('suggestions');
+    
+    suggestionsDiv.innerHTML = `
+        <div class="suggestions-header">
+            <i class="fas fa-lightbulb"></i>
+            <span>Suggested Habits:</span>
+        </div>
+        ${suggestions.map(suggestion => `
+            <div class="suggestion-item">
+                <span class="suggestion-text">${suggestion}</span>
+                <button class="btn add-suggestion-btn" onclick="addSuggestionAsHabit('${suggestion.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-plus"></i>
+                    Add
+                </button>
+            </div>
+        `).join('')}
+    `;
+}
+
+// Add suggested habit
+async function addSuggestionAsHabit(habitName) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: habitName })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            loadHabits();
+            // Show success feedback
+            document.getElementById('goalInput').value = '';
+            document.getElementById('suggestions').innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Habit added successfully!</div>';
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error adding habit');
     }
 }

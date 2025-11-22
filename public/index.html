@@ -34,6 +34,28 @@
             </button>
         </div>
 
+        <div class="ai-suggestion-card">
+            <div class="ai-header">
+                <i class="fas fa-magic"></i>
+                <h3>AI Habit Suggestions</h3>
+            </div>
+            <p class="ai-description">Tell us your goal, and we'll suggest habits to help you achieve it!</p>
+            <div class="goal-input-wrapper">
+                <i class="fas fa-target goal-icon"></i>
+                <textarea 
+                    id="goalInput" 
+                    placeholder="e.g., I want to get healthier and more fit, improve my productivity, learn web development..."
+                    rows="3"
+                    maxlength="300"
+                ></textarea>
+            </div>
+            <button id="suggestBtn" onclick="getSuggestions()">
+                <i class="fas fa-sparkles"></i>
+                <span>Get AI Suggestions</span>
+            </button>
+            <div id="suggestions" class="suggestions-list"></div>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">
