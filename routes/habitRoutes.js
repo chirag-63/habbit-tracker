@@ -11,7 +11,8 @@ router.get('/', habitController.getAllHabits);
 // PATCH /api/habits/:id/complete - Mark habit as complete
 router.patch('/:id/complete', habitController.completeHabit);
 
-// PATCH /api/habits/:id/complete - UnMark habit as not complete
+// PATCH /api/habits/:id/uncomplete - Unmark habit as not complete
+router.patch('/:id/uncomplete', habitController.uncompleteHabit);
 
 // DELETE /api/habits/:id - Delete a habit
 router.delete('/:id', habitController.deleteHabit);

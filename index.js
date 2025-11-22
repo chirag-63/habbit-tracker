@@ -9,7 +9,6 @@ const connectDB = require('./config/database');
 const path = require('path');
 
 const app = express()
-const port = 3000
 
 //database connection
 connectDB();
@@ -28,6 +27,6 @@ app.get('/', (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`)
+app.listen(PORT, () => {
+  console.log(`Server listening on PORT ${PORT}`)
 })

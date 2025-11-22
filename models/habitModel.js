@@ -26,12 +26,20 @@ const habitSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Check if habit needs daily reset
+habitSchema.methods.checkDailyStatus = function() {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // If last completed is not today, mark as incomplete
+  if (this.lastCompleted !== today && this.completed) {
+    this.completed = false;
+    return this.save();
+  }
+  return Promise.resolve(this);
+};
+
 habitSchema.methods.markComplete = function() {
   const today = new Date().toISOString().split('T')[0];
-
-  if (this.lastCompleted !== today) {
-    this.completed = false;
-  }
   
   if (this.lastCompleted === today) {
     throw new Error('Habit already completed today');
@@ -41,11 +49,14 @@ habitSchema.methods.markComplete = function() {
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
+  // Check if completing consecutively
   if (this.lastCompleted === yesterdayStr) {
     this.streak += 1;
   } else if (this.lastCompleted === null) {
+    // First time completing
     this.streak = 1;
   } else {
+    // Streak broken - reset to 1
     this.streak = 1;
   }
 
