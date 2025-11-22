@@ -1,4 +1,5 @@
 const Habit = require('../models/habitModel');
+const { GoogleGenAI } = require('@google/genai');
 
 // Create a new habit
 exports.createHabit = async (req, res) => {
@@ -125,6 +126,78 @@ exports.deleteHabit = async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message
+    });
+  }
+};
+
+// AI-powered habit suggestions using Gemini
+exports.suggestHabits = async (req, res) => {
+  try {
+    const { goal } = req.body;
+
+    if (!goal || goal.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Goal is required'
+      });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        error: 'Gemini API key not configured'
+      });
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const prompt = `Based on the following goal: "${goal}", suggest exactly 3 specific, actionable daily habits that would help achieve this goal. 
+
+Format your response as a simple numbered list with just the habit names, one per line. Each habit should be:
+- Specific and actionable
+- Suitable for daily practice
+- Directly related to the goal
+- Concise (under 50 characters)
+
+Example format:
+1. Drink 8 glasses of water
+2. Walk 10,000 steps daily
+3. Sleep before 11 PM
+
+Now suggest 3 habits for the goal: "${goal}"`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt
+    });
+
+    const text = response.text
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    const habits = [];
+
+    for (const line of lines) {
+      const match = line.match(/^[\d\-\*\.]+\s*(.+)$/);
+      if (match && habits.length < 3) {
+        habits.push(match[1].trim());
+      }
+    }
+
+    if (habits.length < 3) {
+      return res.status(500).json({
+        success: false,
+        error: 'Could not generate enough habit suggestions'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      goal: goal,
+      suggestions: habits.slice(0, 3)
+    });
+  } catch (error) {
+    console.error('Gemini API Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate habit suggestions: ' + error.message
     });
   }
 };

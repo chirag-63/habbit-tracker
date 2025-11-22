@@ -14,6 +14,9 @@ router.patch('/:id/complete', habitController.completeHabit);
 // PATCH /api/habits/:id/uncomplete - Unmark habit as not complete
 router.patch('/:id/uncomplete', habitController.uncompleteHabit);
 
+// POST /api/habits/suggest-habits - Get AI-powered habit suggestions
+router.post('/suggest-habits', habitController.suggestHabits);
+
 // DELETE /api/habits/:id - Delete a habit
 router.delete('/:id', habitController.deleteHabit);
 
