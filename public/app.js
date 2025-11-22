@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:3000/api/habits';
+const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000/api/habits' 
+    : '/api/habits';
 
 // Load habits on page load
 document.addEventListener('DOMContentLoaded', () => {
